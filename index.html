@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Panini FIFA World Cup 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #c9a227; --gold-light: #e8c547; --gold-dark: #a07820;
+    --blue: #4a9eff; --green: #64c878; --bg: #080b14;
+    --surface: rgba(255,255,255,.05); --border: rgba(255,255,255,.08);
+  }
+  body { font-family: 'Barlow Condensed', sans-serif; background: var(--bg); color: #fff; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+  #header { background: linear-gradient(90deg, var(--gold), var(--gold-light) 45%, var(--gold)); padding: 14px 16px 10px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 24px rgba(201,162,39,.45); }
+  #header-inner { display: flex; justify-content: space-between; align-items: flex-start; }
+  #header-label { font-size: 10px; font-weight: 700; letter-spacing: 3px; color: rgba(0,0,0,.5); text-transform: uppercase; }
+  #header-title { font-size: 22px; font-weight: 900; color: #000; line-height: 1.1; }
+  #header-right { text-align: right; }
+  #header-pct { font-size: 30px; font-weight: 900; color: #000; line-height: 1; }
+  #header-count { font-size: 10px; color: rgba(0,0,0,.5); font-weight: 700; letter-spacing: 1px; }
+  #sync-indicator { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: rgba(0,0,0,.45); margin-top: 2px; min-height: 14px; text-align: right; }
+  #progress-bar { height: 5px; background: rgba(0,0,0,.2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  #progress-fill { height: 100%; background: #000; border-radius: 3px; transition: width .5s ease; width: 0%; }
+  #back-btn { background: rgba(0,0,0,.2); border: none; color: #000; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; padding: 2px 8px; border-radius: 3px; margin-bottom: 4px; display: none; }
+  #controls { padding: 10px 14px 6px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  #search { flex: 1; min-width: 140px; background: rgba(255,255,255,.07); border: 1px solid rgba(201,162,39,.3); border-radius: 6px; padding: 7px 12px; color: #fff; font-size: 14px; outline: none; font-family: 'Barlow Condensed', sans-serif; }
+  #search::placeholder { color: rgba(255,255,255,.3); }
+  .filter-btns { display: flex; gap: 4px; }
+  .fbtn { padding: 7px 11px; border-radius: 5px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); border: none; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 13px; transition: all .12s; }
+  .fbtn.active { background: var(--gold); color: #000; }
+  #sections-view { padding: 6px 14px 90px; }
+  .group-label { font-size: 11px; font-weight: 800; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; border-left: 3px solid var(--gold); padding-left: 8px; }
+  .group-block { margin-bottom: 20px; }
+  .sections-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .sec-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: transform .18s, box-shadow .18s; }
+  .sec-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,162,39,.2); }
+  .sec-card.complete { background: linear-gradient(135deg,rgba(201,162,39,.22),rgba(201,162,39,.08)); border-color: rgba(201,162,39,.55); }
+  .sec-emoji { font-size: 22px; margin-bottom: 4px; }
+  .sec-name { font-size: 12px; font-weight: 700; color: #fff; line-height: 1.2; margin-bottom: 6px; }
+  .sec-card.complete .sec-name { color: var(--gold-light); }
+  .sec-bar-bg { height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
+  .sec-bar-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width .4s; }
+  .sec-card.complete .sec-bar-fill { background: var(--gold); }
+  .sec-count { margin-top: 4px; font-size: 11px; color: rgba(255,255,255,.45); font-weight: 600; }
+  .sec-check { color: var(--gold); margin-left: 4px; }
+  #stickers-view { padding: 8px 14px 90px; display: none; }
+  #sec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: var(--surface); border-radius: 8px; padding: 10px 14px; }
+  #sec-have { font-size: 22px; font-weight: 800; color: var(--gold); }
+  #sec-total { font-size: 13px; color: rgba(255,255,255,.5); margin-left: 4px; }
+  #sec-progress { height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; margin-top: 4px; overflow: hidden; width: 100px; }
+  #sec-progress-fill { height: 100%; background: var(--gold); }
+  #toggle-all-btn { background: rgba(201,162,39,.2); border: 1px solid rgba(201,162,39,.5); color: var(--gold); border-radius: 6px; padding: 6px 14px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  .stickers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 8px; }
+  .sticker { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 10px 8px; text-align: center; position: relative; cursor: pointer; transition: transform .12s; }
+  .sticker:active { transform: scale(.94); }
+  .sticker.owned { background: rgba(74,158,255,.2); border-color: rgba(74,158,255,.5); }
+  .sticker.owned-foil { background: linear-gradient(135deg,var(--gold),var(--gold-light),var(--gold-dark)); border-color: var(--gold-light); box-shadow: 0 0 14px rgba(201,162,39,.4); }
+  .sticker.owned-photo { background: rgba(100,200,120,.2); border-color: rgba(100,200,120,.5); }
+  .sticker-id { font-size: 9px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,.3); margin-bottom: 4px; text-transform: uppercase; }
+  .sticker.owned .sticker-id { color: rgba(74,158,255,.8); }
+  .sticker.owned-foil .sticker-id { color: rgba(0,0,0,.6); }
+  .sticker.owned-photo .sticker-id { color: rgba(100,200,120,.8); }
+  .sticker-name { font-size: 11px; font-weight: 400; color: rgba(255,255,255,.45); line-height: 1.3; }
+  .sticker.owned .sticker-name, .sticker.owned-photo .sticker-name { font-weight: 700; color: #fff; }
+  .sticker.owned-foil .sticker-name { font-weight: 700; color: #000; }
+  .sticker-check { position: absolute; top: 4px; right: 5px; font-size: 10px; font-weight: 900; color: var(--blue); display: none; }
+  .sticker.owned .sticker-check { display: block; }
+  .sticker.owned-foil .sticker-check { color: #000; display: block; }
+  .sticker.owned-photo .sticker-check { color: var(--green); display: block; }
+  #bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(8,11,20,.97); backdrop-filter: blur(12px); border-top: 1px solid rgba(201,162,39,.2); padding: 8px 20px 10px; z-index: 99; }
+  .bottom-stats { display: flex; justify-content: space-around; }
+  .stat { text-align: center; }
+  .stat-val { font-size: 20px; font-weight: 800; line-height: 1; }
+  .stat-lbl { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,.35); text-transform: uppercase; }
+  #sync-status { text-align: center; font-size: 10px; color: rgba(255,255,255,.2); margin-top: 4px; letter-spacing: 1px; font-weight: 600; min-height: 14px; }
+  .empty { text-align: center; color: rgba(255,255,255,.35); padding: 40px 20px; font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="header">
+  <div id="header-inner">
+    <div>
+      <button id="back-btn">← VOLVER</button>
+      <div id="header-label">Álbum Oficial Panini</div>
+      <div id="header-title">FIFA World Cup 2026™</div>
+    </div>
+    <div id="header-right">
+      <div id="header-pct">0%</div>
+      <div id="header-count">0/990</div>
+      <div id="sync-indicator"></div>
+    </div>
+  </div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+</div>
+<div id="controls">
+  <input id="search" placeholder="Buscar selección..." type="text"/>
+  <div class="filter-btns">
+    <button class="fbtn active" data-filter="all">Todos</button>
+    <button class="fbtn" data-filter="missing">Faltan</button>
+    <button class="fbtn" data-filter="owned">Tengo</button>
+  </div>
+</div>
+<div id="sections-view"></div>
+<div id="stickers-view">
+  <div id="sec-header">
+    <div>
+      <span id="sec-have">0</span><span id="sec-total"> de 0</span>
+      <div id="sec-progress"><div id="sec-progress-fill" style="width:0%"></div></div>
+    </div>
+    <button id="toggle-all-btn">Marcar todos</button>
+  </div>
+  <div class="stickers-grid" id="stickers-grid"></div>
+  <div class="empty" id="stickers-empty" style="display:none"></div>
+</div>
+<div id="bottom-bar">
+  <div class="bottom-stats">
+    <div class="stat"><div class="stat-val" id="stat-tengo" style="color:#4a9eff">0</div><div class="stat-lbl">Tengo</div></div>
+    <div class="stat"><div class="stat-val" id="stat-faltan" style="color:#ff5f5f">980</div><div class="stat-lbl">Faltan</div></div>
+    <div class="stat"><div class="stat-val" id="stat-total" style="color:#c9a227">990</div><div class="stat-lbl">Total</div></div>
+  </div>
+  <div id="sync-status">Conectando...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDyfMUbcO6w5iUvgDhyTcrczG5RgoVfPmo",
+  authDomain: "panini2026-bb855.firebaseapp.com",
+  databaseURL: "https://panini2026-bb855-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "panini2026-bb855",
+  storageBucket: "panini2026-bb855.firebasestorage.app",
+  messagingSenderId: "50502182627",
+  appId: "1:50502182627:web:e7772752b37a60720787d6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const ALBUM_KEY = "panini2026";
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const INTRO = [
+  {id:"00",name:"Logo Panini (FOIL)"},{id:"FWC1",name:"Emblema oficial (FOIL)"},
+  {id:"FWC2",name:"Emblema oficial (FOIL)"},{id:"FWC3",name:"Mascotas oficiales (FOIL)"},
+  {id:"FWC4",name:"Eslogan oficial (FOIL)"},{id:"FWC5",name:"Balón oficial (FOIL)"},
+  {id:"FWC6",name:"Canadá - País anfitrión (FOIL)"},{id:"FWC7",name:"México - País anfitrión (FOIL)"},
+  {id:"FWC8",name:"USA - País anfitrión (FOIL)"},
+];
+const MUSEUM = [
+  {id:"FWC9",name:"Italia 1934 (FOIL)"},{id:"FWC10",name:"Uruguay 1950 (FOIL)"},
+  {id:"FWC11",name:"Alemania Occ. 1954 (FOIL)"},{id:"FWC12",name:"Brasil 1962 (FOIL)"},
+  {id:"FWC13",name:"Alemania Occ. 1974 (FOIL)"},{id:"FWC14",name:"Argentina 1986 (FOIL)"},
+  {id:"FWC15",name:"Brasil 1994 (FOIL)"},{id:"FWC16",name:"Brasil 2002 (FOIL)"},
+  {id:"FWC17",name:"Italia 2006 (FOIL)"},{id:"FWC18",name:"Alemania 2014 (FOIL)"},
+  {id:"FWC19",name:"Argentina 2022 (FOIL)"},
+];
+const TEAMS = [
+  {code:"MEX",name:"México",flag:"🇲🇽",group:"A"},{code:"RSA",name:"Sudáfrica",flag:"🇿🇦",group:"A"},
+  {code:"KOR",name:"Corea del Sur",flag:"🇰🇷",group:"A"},{code:"CZE",name:"Rep. Checa",flag:"🇨🇿",group:"A"},
+  {code:"CAN",name:"Canadá",flag:"🇨🇦",group:"B"},{code:"BIH",name:"Bosnia y Herz.",flag:"🇧🇦",group:"B"},
+  {code:"QAT",name:"Qatar",flag:"🇶🇦",group:"B"},{code:"SUI",name:"Suiza",flag:"🇨🇭",group:"B"},
+  {code:"BRA",name:"Brasil",flag:"🇧🇷",group:"C"},{code:"MAR",name:"Marruecos",flag:"🇲🇦",group:"C"},
+  {code:"HAI",name:"Haití",flag:"🇭🇹",group:"C"},{code:"SCO",name:"Escocia",flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",group:"C"},
+  {code:"USA",name:"Estados Unidos",flag:"🇺🇸",group:"D"},{code:"PAR",name:"Paraguay",flag:"🇵🇾",group:"D"},
+  {code:"AUS",name:"Australia",flag:"🇦🇺",group:"D"},{code:"TUR",name:"Turquía",flag:"🇹🇷",group:"D"},
+  {code:"GER",name:"Alemania",flag:"🇩🇪",group:"E"},{code:"CUW",name:"Curazao",flag:"🇨🇼",group:"E"},
+  {code:"CIV",name:"Costa de Marfil",flag:"🇨🇮",group:"E"},{code:"ECU",name:"Ecuador",flag:"🇪🇨",group:"E"},
+  {code:"NED",name:"Países Bajos",flag:"🇳🇱",group:"F"},{code:"JPN",name:"Japón",flag:"🇯🇵",group:"F"},
+  {code:"SWE",name:"Suecia",flag:"🇸🇪",group:"F"},{code:"TUN",name:"Túnez",flag:"🇹🇳",group:"F"},
+  {code:"BEL",name:"Bélgica",flag:"🇧🇪",group:"G"},{code:"EGY",name:"Egipto",flag:"🇪🇬",group:"G"},
+  {code:"IRN",name:"Irán",flag:"🇮🇷",group:"G"},{code:"NZL",name:"Nueva Zelanda",flag:"🇳🇿",group:"G"},
+  {code:"ESP",name:"España",flag:"🇪🇸",group:"H"},{code:"CPV",name:"Cabo Verde",flag:"🇨🇻",group:"H"},
+  {code:"KSA",name:"Arabia Saudí",flag:"🇸🇦",group:"H"},{code:"URU",name:"Uruguay",flag:"🇺🇾",group:"H"},
+  {code:"FRA",name:"Francia",flag:"🇫🇷",group:"I"},{code:"SEN",name:"Senegal",flag:"🇸🇳",group:"I"},
+  {code:"IRQ",name:"Irak",flag:"🇮🇶",group:"I"},{code:"NOR",name:"Noruega",flag:"🇳🇴",group:"I"},
+  {code:"ARG",name:"Argentina",flag:"🇦🇷",group:"J"},{code:"ALG",name:"Argelia",flag:"🇩🇿",group:"J"},
+  {code:"AUT",name:"Austria",flag:"🇦🇹",group:"J"},{code:"JOR",name:"Jordania",flag:"🇯🇴",group:"J"},
+  {code:"POR",name:"Portugal",flag:"🇵🇹",group:"K"},{code:"COD",name:"RD Congo",flag:"🇨🇩",group:"K"},
+  {code:"UZB",name:"Uzbekistán",flag:"🇺🇿",group:"K"},{code:"COL",name:"Colombia",flag:"🇨🇴",group:"K"},
+  {code:"ENG",name:"Inglaterra",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",group:"L"},{code:"CRO",name:"Croacia",flag:"🇭🇷",group:"L"},
+  {code:"GHA",name:"Ghana",flag:"🇬🇭",group:"L"},{code:"PAN",name:"Panamá",flag:"🇵🇦",group:"L"},
+];
+const LABELS = [
+  "Escudo (FOIL)","Jugador 2","Jugador 3","Jugador 4","Jugador 5","Jugador 6",
+  "Jugador 7","Jugador 8","Jugador 9","Jugador 10","Jugador 11","Jugador 12",
+  "Foto equipo","Jugador 14","Jugador 15","Jugador 16","Jugador 17","Jugador 18","Jugador 19","Jugador 20",
+];
+const ALL_SECTIONS = [
+  {id:"INTRO", name:"Introducción", emoji:"🏆", stickers:INTRO},
+  {id:"MUSEUM",name:"Historia",     emoji:"🏅", stickers:MUSEUM},
+  ...TEAMS.map(t => ({
+    id:t.code, name:t.name, emoji:t.flag, group:t.group,
+    stickers: LABELS.map((label,i) => ({id:`${t.code}${i+1}`, name:label}))
+  }))
+];
+const GROUPS = ["INTRO","MUSEUM","A","B","C","D","E","F","G","H","I","J","K","L"];
+const TOTAL = INTRO.length + MUSEUM.length + TEAMS.length * 20;
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let owned      = new Set();
+let filterMode = "all";
+let search     = "";
+let activeSec  = null;
+let saveTimer  = null;
+
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+setSyncStatus("Conectando…");
+onValue(ref(db, ALBUM_KEY), (snapshot) => {
+  const data = snapshot.val();
+  owned = new Set(data ? data.cromos || [] : []);
+  render();
+  setSyncStatus("✓ Sincronizado " + new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
+});
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  document.getElementById("sync-indicator").textContent = "Guardando…";
+  saveTimer = setTimeout(() => {
+    set(ref(db, ALBUM_KEY), { cromos: [...owned] })
+      .then(() => {
+        document.getElementById("sync-indicator").textContent = "✓ Guardado";
+        setTimeout(() => { document.getElementById("sync-indicator").textContent = ""; }, 1500);
+      });
+  }, 600);
+}
+
+function setSyncStatus(msg) { document.getElementById("sync-status").textContent = msg; }
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function prog(sec) {
+  const total = sec.stickers.length;
+  const have  = sec.stickers.filter(s => owned.has(s.id)).length;
+  return { have, total, pct: Math.round(have/total*100) };
+}
+function stickerCls(s) {
+  if (!owned.has(s.id)) return "sticker";
+  if (s.name.includes("FOIL") || s.name.includes("Escudo")) return "sticker owned-foil";
+  if (s.name.includes("Foto")) return "sticker owned-photo";
+  return "sticker owned";
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function toggle(id) {
+  if (owned.has(id)) owned.delete(id); else owned.add(id);
+  scheduleSave(); render();
+}
+function toggleAll(sec) {
+  const ids = sec.stickers.map(s => s.id);
+  const all = ids.every(id => owned.has(id));
+  if (all) ids.forEach(id => owned.delete(id)); else ids.forEach(id => owned.add(id));
+  scheduleSave(); render();
+}
+function openSection(id) { activeSec = id; render(); }
+function goBack() { activeSec = null; render(); }
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const totalOwned = owned.size;
+  const globalPct  = Math.round(totalOwned / TOTAL * 100);
+  document.getElementById("header-pct").textContent    = globalPct + "%";
+  document.getElementById("header-count").textContent  = totalOwned + "/" + TOTAL;
+  document.getElementById("progress-fill").style.width = globalPct + "%";
+  document.getElementById("stat-tengo").textContent    = totalOwned;
+  document.getElementById("stat-faltan").textContent   = TOTAL - totalOwned;
+  document.getElementById("stat-total").textContent    = TOTAL;
+
+  const currentSec = activeSec ? ALL_SECTIONS.find(s => s.id === activeSec) : null;
+
+  if (!currentSec) {
+    document.getElementById("back-btn").style.display      = "none";
+    document.getElementById("header-title").textContent    = "FIFA World Cup 2026™";
+    document.getElementById("search").style.display        = "";
+    document.getElementById("sections-view").style.display = "";
+    document.getElementById("stickers-view").style.display = "none";
+
+    const sv = search.toLowerCase();
+    const filtered = ALL_SECTIONS.filter(sec => {
+      const ok = !sv || sec.name.toLowerCase().includes(sv);
+      if (!ok) return false;
+      if (filterMode === "missing") { const {have,total} = prog(sec); return have < total; }
+      if (filterMode === "owned")   return prog(sec).have > 0;
+      return true;
+    });
+
+    let html = "";
+    GROUPS.forEach(group => {
+      const secs = filtered.filter(s => s.group===group||(group==="INTRO"&&s.id==="INTRO")||(group==="MUSEUM"&&s.id==="MUSEUM"));
+      if (!secs.length) return;
+      const label = group==="INTRO"?"INTRODUCCIÓN":group==="MUSEUM"?"HISTORIA DEL MUNDIAL":`GRUPO ${group}`;
+      html += `<div class="group-block"><div class="group-label">${label}</div><div class="sections-grid">`;
+      secs.forEach(sec => {
+        const {have,total,pct} = prog(sec);
+        const done = have===total;
+        html += `<div class="sec-card${done?" complete":""}" data-id="${sec.id}">
+          <div class="sec-emoji">${sec.emoji}</div>
+          <div class="sec-name">${sec.name}</div>
+          <div class="sec-bar-bg"><div class="sec-bar-fill" style="width:${pct}%"></div></div>
+          <div class="sec-count">${have}/${total}${done?'<span class="sec-check">✓</span>':""}</div>
+        </div>`;
+      });
+      html += `</div></div>`;
+    });
+    if (!filtered.length) html = '<div class="empty">Sin resultados</div>';
+    document.getElementById("sections-view").innerHTML = html;
+
+    document.querySelectorAll(".sec-card").forEach(card => {
+      card.addEventListener("click", () => openSection(card.dataset.id));
+    });
+
+  } else {
+    document.getElementById("back-btn").style.display      = "block";
+    document.getElementById("header-title").textContent    = currentSec.emoji + " " + currentSec.name;
+    document.getElementById("search").style.display        = "none";
+    document.getElementById("sections-view").style.display = "none";
+    document.getElementById("stickers-view").style.display = "";
+
+    const {have,total,pct} = prog(currentSec);
+    document.getElementById("sec-have").textContent           = have;
+    document.getElementById("sec-total").textContent          = " de " + total;
+    document.getElementById("sec-progress-fill").style.width  = pct + "%";
+    const allHave = currentSec.stickers.every(s => owned.has(s.id));
+    document.getElementById("toggle-all-btn").textContent = allHave ? "Desmarcar todos" : "Marcar todos";
+    document.getElementById("toggle-all-btn").onclick = () => toggleAll(currentSec);
+
+    const stickers = currentSec.stickers.filter(s => {
+      if (filterMode === "missing") return !owned.has(s.id);
+      if (filterMode === "owned")   return owned.has(s.id);
+      return true;
+    });
+
+    if (!stickers.length) {
+      document.getElementById("stickers-grid").innerHTML = "";
+      document.getElementById("stickers-empty").style.display = "";
+      document.getElementById("stickers-empty").textContent = filterMode==="missing" ? "🎉 ¡Tienes todos los cromos!" : "Aún no tienes ninguno aquí.";
+    } else {
+      document.getElementById("stickers-empty").style.display = "none";
+      document.getElementById("stickers-grid").innerHTML = stickers.map(s =>
+        `<div class="${stickerCls(s)}" data-id="${s.id}">
+          <div class="sticker-id">${s.id}</div>
+          <div class="sticker-name">${s.name}</div>
+          <div class="sticker-check">✓</div>
+        </div>`
+      ).join("");
+      document.querySelectorAll(".sticker").forEach(el => {
+        el.addEventListener("click", () => toggle(el.dataset.id));
+      });
+    }
+  }
+}
+
+// ── EVENTS ────────────────────────────────────────────────────────────────────
+document.getElementById("back-btn").addEventListener("click", goBack);
+document.getElementById("search").addEventListener("input", e => { search = e.target.value; render(); });
+document.querySelectorAll(".fbtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    filterMode = btn.dataset.filter;
+    document.querySelectorAll(".fbtn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  });
+});
+</script>
+</body>
+</html>
